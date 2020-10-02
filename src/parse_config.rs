@@ -12,10 +12,13 @@ struct ConfigToml {
 
 /**
  * The name of the struct has to match the name of the section,
- * e.g. [serial] will have to have a struct named Serial
+ * e.g. [serial] will have to have a struct named Serial.
+ *
+ * The name of the fields will also have to match the name of the keys in the toml file!
  */
 #[derive(Deserialize)]
 struct Serial {
+    serial_port: String,
     baud_rate: u32,
     data_bits: u32,
     flow_control: String,
@@ -24,10 +27,19 @@ struct Serial {
     timeout_in_milliseconds: u64,
 }
 
+/// This struct is what will actually be passed onto another module that can
+/// then use the serial port settings.
+pub struct GetConfigResults {
+    /// The address of the serial port
+    pub serial_port: String,
+    /// Serial port's settings, such as `baud rate` or `parity`.
+    pub serial_port_settings: SerialPortSettings,
+}
+
 pub struct ParseConfig;
 
 impl ParseConfig {
-    pub fn get_config() -> SerialPortSettings {
+    pub fn get_config() -> GetConfigResults {
         let mut path = env::current_exe().unwrap();
         let config_file_name = "SerialConfig.toml";
         path.pop();
@@ -46,13 +58,16 @@ impl ParseConfig {
         let parity = ParseConfig::get_parity(&toml_val);
         let stop_bits = ParseConfig::get_stop_bits(&toml_val);
         let timeout = Duration::from_millis(toml_val.timeout_in_milliseconds);
-        SerialPortSettings {
-            baud_rate,
-            data_bits,
-            flow_control,
-            parity,
-            stop_bits,
-            timeout,
+        GetConfigResults {
+            serial_port: toml_val.serial_port,
+            serial_port_settings: SerialPortSettings {
+                baud_rate,
+                data_bits,
+                flow_control,
+                parity,
+                stop_bits,
+                timeout,
+            },
         }
     }
 

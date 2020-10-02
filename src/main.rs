@@ -2,12 +2,13 @@ use chrono::{DateTime, Local};
 use serialport;
 
 mod parse_config;
-use parse_config::ParseConfig;
+use parse_config::{GetConfigResults, ParseConfig};
 
 fn main() {
-    let port = "/dev/ttyUSB0";
-    let settings = ParseConfig::get_config();
-    let mut serial_port = serialport::open_with_settings(port, &settings)
+    let toml_config_result: GetConfigResults = ParseConfig::get_config();
+    let port = toml_config_result.serial_port;
+    let settings = toml_config_result.serial_port_settings;
+    let mut serial_port = serialport::open_with_settings(&port, &settings)
         .expect(&format!("Serial Port did not open!\n'{}'", port));
 
     let mut buffer = [0; 256];
