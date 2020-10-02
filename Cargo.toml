@@ -1,6 +1,6 @@
 [package]
 name = "serial-port-reader"
-version = "0.1.0"
+version = "0.1.2"
 authors = ["signet-mob <signet.mob@gmail.com>"]
 edition = "2018"
 
@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 chrono = "0.4"
 serialport = "3.3"
+structopt = "0.3"
 toml = "0.5"
 
 [dependencies.serde]

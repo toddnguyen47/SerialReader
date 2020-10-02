@@ -1,38 +1,28 @@
-use chrono::{DateTime, Local};
-use serialport;
-
 mod parse_config;
-use parse_config::{GetConfigResults, ParseConfig};
+
+mod read_serial;
+use read_serial::ReadSerial;
+
+use structopt::StructOpt;
+
+#[derive(StructOpt)]
+#[structopt(
+    name = "ReadSerial",
+    about = "Reading continuously from a serial port."
+)]
+struct Cli {
+    /// `toml` File Path
+    #[structopt(long = "--config")]
+    config: Option<String>,
+}
 
 fn main() {
-    let toml_config_result: GetConfigResults = ParseConfig::get_config();
-    let port = toml_config_result.serial_port;
-    let settings = toml_config_result.serial_port_settings;
-    let mut serial_port = serialport::open_with_settings(&port, &settings)
-        .expect(&format!("Serial Port did not open!\n'{}'", port));
+    let args = Cli::from_args();
+    let config_file_path: String = match args.config {
+        Some(string_val) => string_val,
+        None => String::from(""),
+    };
 
-    let mut buffer = [0; 256];
-    let mut string_result = String::new();
-    loop {
-        let bytes_read = serial_port.read(&mut buffer).unwrap();
-        if bytes_read > 0 {
-            let mut is_carriage_return_char = false;
-
-            for i in 0..bytes_read {
-                let c1 = buffer[i] as char;
-                if c1 == '\r' || c1 == '\n' {
-                    is_carriage_return_char = true;
-                }
-                string_result.push(buffer[i] as char);
-            }
-
-            if is_carriage_return_char {
-                let now: DateTime<Local> = Local::now();
-                let timestamp = now.format("%Y-%m-%d %H:%M:%S");
-                string_result = string_result.replace("\n", "\\n").replace("\r", "\\r");
-                println!("[{}] Rx: '{}'", timestamp, string_result);
-                string_result.clear();
-            }
-        }
-    }
+    let read_serial = ReadSerial::new();
+    read_serial.execute(&config_file_path);
 }

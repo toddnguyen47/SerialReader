@@ -3,6 +3,7 @@ use serialport::{DataBits, FlowControl, Parity, SerialPortSettings, StopBits};
 use std::env;
 use std::fs::File;
 use std::io::Read;
+use std::path::PathBuf;
 use std::time::Duration;
 
 #[derive(Deserialize)]
@@ -39,11 +40,13 @@ pub struct GetConfigResults {
 pub struct ParseConfig;
 
 impl ParseConfig {
-    pub fn get_config() -> GetConfigResults {
-        let mut path = env::current_exe().unwrap();
-        let config_file_name = "SerialConfig.toml";
-        path.pop();
-        path.push(config_file_name);
+    pub fn get_config(config_file_name: &str) -> GetConfigResults {
+        let mut path: PathBuf = PathBuf::from(config_file_name);
+        if config_file_name == "" {
+            path = env::current_exe().unwrap();
+            path.pop();
+            path.push("SerialConfig.toml");
+        }
 
         let mut file = File::open(path).expect("Cannot open SerialConfig.toml");
         let mut file_data = String::new();
