@@ -18,10 +18,7 @@ struct Cli {
 
 fn main() {
     let args = Cli::from_args();
-    let config_file_path: String = match args.config {
-        Some(string_val) => string_val,
-        None => String::from(""),
-    };
+    let config_file_path: String = args.config.unwrap_or(String::from(""));
 
     let read_serial = ReadSerial::new();
     read_serial.execute(&config_file_path);

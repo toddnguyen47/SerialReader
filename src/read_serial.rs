@@ -19,7 +19,7 @@ impl ReadSerial {
         let mut buffer = [0; 256];
         let mut string_result = String::new();
         loop {
-            let bytes_read = serial_port.read(&mut buffer).unwrap();
+            let bytes_read = serial_port.read(&mut buffer).unwrap_or(0);
             if bytes_read > 0 {
                 let mut is_carriage_return_char = false;
 
