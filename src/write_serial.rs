@@ -1,13 +1,16 @@
+use crate::{read_serial::IReadSerial, serial_port_open::SerialPortOpen};
+
 use serde::Deserialize;
 use serialport::SerialPort;
 
-use crate::{read_serial::IReadSerial, serial_port_open::SerialPortOpen};
+use rustyline::error::ReadlineError;
+use rustyline::Editor;
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 use std::{fs::File, io::prelude::*};
-use std::{io, path::PathBuf};
 
 #[derive(Deserialize)]
 struct ConfigToml {
@@ -22,6 +25,8 @@ struct Command {
 pub struct WriteSerial<'a> {
   config_file_name: &'a str,
   read_serial: Box<dyn IReadSerial + 'a>,
+  history_path: &'a str,
+  max_history_len: usize,
 }
 
 impl<'a> WriteSerial<'a> {
@@ -29,6 +34,8 @@ impl<'a> WriteSerial<'a> {
     Self {
       config_file_name,
       read_serial,
+      history_path: "history.txt",
+      max_history_len: (1 << 7) + ((1 << 7) - 1),
     }
   }
 
@@ -48,13 +55,22 @@ impl<'a> WriteSerial<'a> {
     let _timeout_duration = serial_port_results.timeout_duration;
     let mut count = 0;
 
+    let mut rustyline_editor = Editor::<()>::new();
+    rustyline_editor
+      .history_mut()
+      .set_max_len(self.max_history_len);
+
     loop {
       if count == 0 {
         println!("\n--- Press Ctrl + C to end the session ---");
       }
       count = (count + 1) % 5;
 
-      let buffer_str = self.get_input();
+      let buffer_str = match self.get_input(&mut rustyline_editor) {
+        Ok(line) => line,
+        Err(_) => break,
+      };
+
       let buffer_upper = buffer_str.to_uppercase();
       if custom_commands.contains_key(&buffer_upper) {
         let empty_vec = Vec::<String>::new();
@@ -69,15 +85,34 @@ impl<'a> WriteSerial<'a> {
     }
   }
 
-  pub fn get_input(&self) -> String {
-    print!("\n>>> ");
-    io::stdout().flush().expect("Failed to flush prompt");
-    let mut buffer_str = String::new();
-    io::stdin()
-      .read_line(&mut buffer_str)
-      .expect("Failed to read line");
-    buffer_str.pop();
-    buffer_str
+  pub fn get_input(&self, rustyline_editor: &mut Editor<()>) -> Result<String, ReadlineError> {
+    if rustyline_editor.load_history(self.history_path).is_err() {
+      println!(
+        "No previous history yet. Will create history at: '{}'",
+        self.history_path
+      );
+    }
+
+    println!("");
+    let readline = rustyline_editor.readline(">>> ");
+    match readline {
+      Ok(line) => {
+        rustyline_editor.add_history_entry(line.as_str());
+        rustyline_editor.save_history(self.history_path).unwrap();
+        Ok(line)
+      }
+      Err(ReadlineError::Interrupted) => {
+        println!("CTRL + C detected. Exiting...");
+        Err(ReadlineError::Interrupted)
+      }
+      Err(ReadlineError::Eof) => {
+        println!("CTRL +D detected");
+        Err(ReadlineError::Eof)
+      }
+      Err(err) => {
+        panic!("ERROR: {:?}", err);
+      }
+    }
   }
 
   pub fn write_and_read(&self, buffer_str: &str, serial_port: &mut Box<dyn SerialPort>) {

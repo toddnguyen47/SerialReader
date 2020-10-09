@@ -35,9 +35,10 @@ from the `serialport` repository: https://docs.rs/serialport/3.3.0/serialport/
 
 # How to Use - Advanced
 
-- You can also specify a `.toml` file for the program to use by specifying the file path with the `--config` flag
+- You can also specify a `.toml` file for the program to use by specifying the file path with the `--config` flag.
+- Note that for `write` operations, `--commands` is an optional flag!
 
 ```
 ./serial-port-reader read --config <your_toml_file_path>
-./serial-port-reader write --config <your_toml_file_path>
+./serial-port-reader write --config <your_toml_file_path> --commands <your_extra_commands_file_here>
 ```
