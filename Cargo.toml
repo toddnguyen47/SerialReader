@@ -1,8 +1,8 @@
 [package]
-name = "serial-port-reader"
-version = "0.1.2"
 authors = ["signet-mob <signet.mob@gmail.com>"]
 edition = "2018"
+name = "serial-port-reader"
+version = "0.2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -13,5 +13,5 @@ structopt = "0.3"
 toml = "0.5"
 
 [dependencies.serde]
-version = "1.0"
 features = ["derive"]
+version = "1.0"
