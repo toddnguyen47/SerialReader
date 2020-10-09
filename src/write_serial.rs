@@ -32,7 +32,7 @@ impl<'a> WriteSerial<'a> {
     }
   }
 
-  pub fn execute(&self, custom_command_file_name: &str) {
+  pub fn execute(&self, custom_command_file_name: Option<String>) {
     let custom_commands = self.get_custom_commands(custom_command_file_name);
 
     let mut buffer_arr: [u8; 256] = [0; 256];
@@ -125,31 +125,35 @@ impl<'a> WriteSerial<'a> {
     println!("Rx: '{}'", buffer_str);
   }
 
-  fn get_custom_commands(&self, custom_command_file_name: &str) -> HashMap<String, Vec<String>> {
+  fn get_custom_commands(
+    &self,
+    custom_command_file_name: Option<String>,
+  ) -> HashMap<String, Vec<String>> {
     let mut hashmap = HashMap::<String, Vec<String>>::new();
-    if custom_command_file_name.is_empty() {
-      hashmap
-    } else {
-      let path: PathBuf = PathBuf::from(custom_command_file_name);
-      let mut file = File::open(&path).expect(&format!("Cannot open: '{}'", path.display()));
-      let mut file_data = String::new();
-      file.read_to_string(&mut file_data).unwrap();
+    match custom_command_file_name {
+      Some(file_name) => {
+        let path: PathBuf = PathBuf::from(file_name);
+        let mut file = File::open(&path).expect(&format!("Cannot open: '{}'", path.display()));
+        let mut file_data = String::new();
+        file.read_to_string(&mut file_data).unwrap();
 
-      let config_toml: ConfigToml =
-        toml::from_str(&file_data).expect("Cannot get values from TOML file");
+        let config_toml: ConfigToml =
+          toml::from_str(&file_data).expect("Cannot get values from TOML file");
 
-      let commands_vec = config_toml.command.command_array;
-      for vec_str in commands_vec {
-        let mut iter = vec_str.iter();
-        let shortcut_command = iter
-          .next()
-          .expect("Commands has no shortcut command")
-          .to_uppercase();
-        let commands: Vec<String> = iter.map(|str1| String::from(str1)).collect();
-        hashmap.insert(String::from(shortcut_command), commands);
+        let commands_vec = config_toml.command.command_array;
+        for vec_str in commands_vec {
+          let mut iter = vec_str.iter();
+          let shortcut_command = iter
+            .next()
+            .expect("Commands has no shortcut command")
+            .to_uppercase();
+          let commands: Vec<String> = iter.map(|str1| String::from(str1)).collect();
+          hashmap.insert(String::from(shortcut_command), commands);
+        }
+
+        hashmap
       }
-
-      hashmap
+      None => hashmap,
     }
   }
 }

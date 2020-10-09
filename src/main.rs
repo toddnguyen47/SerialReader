@@ -69,8 +69,7 @@ fn main() {
       let config_file_path: String = config.unwrap_or(String::from(""));
       let write_serial = Factory::create_write_serial(&config_file_path);
 
-      let commands_file_path = commands.unwrap_or(String::from(""));
-      write_serial.execute(&commands_file_path);
+      write_serial.execute(commands);
     }
   }
 }
