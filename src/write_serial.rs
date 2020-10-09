@@ -1,3 +1,5 @@
+use serialport::SerialPort;
+
 use crate::{read_serial::IReadSerial, serial_port_open::SerialPortOpen};
 
 use std::io;
@@ -31,7 +33,6 @@ impl<'a> WriteSerial<'a> {
 
     let _timeout_duration = serial_port_results.timeout_duration;
     let mut count = 0;
-    let stdin = io::stdin();
 
     loop {
       if count == 0 {
@@ -39,40 +40,51 @@ impl<'a> WriteSerial<'a> {
       }
       count = (count + 1) % 10;
 
-      print!("\n>>> ");
-      io::stdout().flush().expect("Failed to flush prompt");
-      let mut buffer_str = String::new();
-      stdin
-        .read_line(&mut buffer_str)
-        .expect("Failed to read line");
-      buffer_str.pop();
-      println!("Tx: '{}'", buffer_str);
+      let buffer_str = self.get_input();
+      self.write_str(&buffer_str, &mut serial_port);
+      self.print_read_results(&mut serial_port);
+    }
+  }
 
-      let mut buffer_u8 = Vec::<u8>::new();
-      for byte in buffer_str.bytes() {
-        buffer_u8.push(byte);
-      }
-      buffer_u8.push('\n' as u8);
+  fn get_input(&self) -> String {
+    print!("\n>>> ");
+    io::stdout().flush().expect("Failed to flush prompt");
+    let mut buffer_str = String::new();
+    io::stdin()
+      .read_line(&mut buffer_str)
+      .expect("Failed to read line");
+    buffer_str.pop();
+    println!("Tx: '{}'", buffer_str);
+    buffer_str
+  }
 
-      let _ = match serial_port.write(&buffer_u8) {
-        Ok(bytes) => bytes,
-        Err(_) => 0,
-      };
-      serial_port.flush().expect("Flush after write() failed");
-      thread::sleep(Duration::from_millis(200));
+  fn write_str(&self, buffer_str: &str, serial_port: &mut Box<dyn SerialPort>) {
+    let mut buffer_u8 = Vec::<u8>::new();
+    for byte in buffer_str.bytes() {
+      buffer_u8.push(byte);
+    }
+    buffer_u8.push('\n' as u8);
 
-      let lines_read = self.read_serial.read_serial_line(&mut serial_port);
-      match lines_read {
-        Some(line) => {
-          let replaced_line = line.replace("\r", "\\r");
-          for cur_line in replaced_line.split("\n") {
-            if !cur_line.is_empty() {
-              println!("Rx: '{}'", cur_line)
-            }
+    let _ = match serial_port.write(&buffer_u8) {
+      Ok(bytes) => bytes,
+      Err(_) => 0,
+    };
+    serial_port.flush().expect("Flush after write() failed");
+    thread::sleep(Duration::from_millis(200));
+  }
+
+  fn print_read_results(&self, serial_port: &mut Box<dyn SerialPort>) {
+    let lines_read = self.read_serial.read_serial_line(serial_port);
+    match lines_read {
+      Some(line) => {
+        let replaced_line = line.replace("\r", "\\r");
+        for cur_line in replaced_line.split("\n") {
+          if !cur_line.is_empty() {
+            println!("Rx: '{}'", cur_line)
           }
         }
-        None => {}
       }
+      None => {}
     }
   }
 
