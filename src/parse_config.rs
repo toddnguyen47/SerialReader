@@ -48,7 +48,7 @@ impl ParseConfig {
       path.push("SerialConfig.toml");
     }
 
-    let mut file = File::open(path).expect("Cannot open SerialConfig.toml");
+    let mut file = File::open(&path).expect(&format!("Cannot open: '{}'", path.display()));
     let mut file_data = String::new();
     file.read_to_string(&mut file_data).unwrap();
 

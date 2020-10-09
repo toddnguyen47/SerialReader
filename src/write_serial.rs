@@ -1,11 +1,23 @@
+use serde::Deserialize;
 use serialport::SerialPort;
 
 use crate::{read_serial::IReadSerial, serial_port_open::SerialPortOpen};
 
-use std::io;
-use std::io::prelude::*;
+use std::collections::HashMap;
 use std::thread;
 use std::time::Duration;
+use std::{fs::File, io::prelude::*};
+use std::{io, path::PathBuf};
+
+#[derive(Deserialize)]
+struct ConfigToml {
+  command: Command,
+}
+
+#[derive(Deserialize)]
+struct Command {
+  command_array: Vec<Vec<String>>,
+}
 
 pub struct WriteSerial<'a> {
   config_file_name: &'a str,
@@ -20,7 +32,9 @@ impl<'a> WriteSerial<'a> {
     }
   }
 
-  pub fn execute(&self) {
+  pub fn execute(&self, custom_command_file_name: &str) {
+    let custom_commands = self.get_custom_commands(custom_command_file_name);
+
     let mut buffer_arr: [u8; 256] = [0; 256];
     let serial_port_results = SerialPortOpen::get_serial_port(self.config_file_name);
     let mut serial_port = serial_port_results.serial_port;
@@ -36,17 +50,26 @@ impl<'a> WriteSerial<'a> {
 
     loop {
       if count == 0 {
-        println!("Press Ctrl + C to end the session");
+        println!("\n--- Press Ctrl + C to end the session ---");
       }
-      count = (count + 1) % 10;
+      count = (count + 1) % 5;
 
       let buffer_str = self.get_input();
-      self.write_str(&buffer_str, &mut serial_port);
-      self.print_read_results(&mut serial_port);
+      let buffer_upper = buffer_str.to_uppercase();
+      if custom_commands.contains_key(&buffer_upper) {
+        let empty_vec = Vec::<String>::new();
+        let vec_command = custom_commands.get(&buffer_upper).unwrap_or(&empty_vec);
+        for command in vec_command {
+          self.write_and_read(&command, &mut serial_port);
+          thread::sleep(Duration::from_millis(500));
+        }
+      } else {
+        self.write_and_read(&buffer_str, &mut serial_port);
+      }
     }
   }
 
-  fn get_input(&self) -> String {
+  pub fn get_input(&self) -> String {
     print!("\n>>> ");
     io::stdout().flush().expect("Failed to flush prompt");
     let mut buffer_str = String::new();
@@ -54,8 +77,13 @@ impl<'a> WriteSerial<'a> {
       .read_line(&mut buffer_str)
       .expect("Failed to read line");
     buffer_str.pop();
-    println!("Tx: '{}'", buffer_str);
     buffer_str
+  }
+
+  pub fn write_and_read(&self, buffer_str: &str, serial_port: &mut Box<dyn SerialPort>) {
+    println!("Tx: '{}'", buffer_str);
+    self.write_str(&buffer_str, serial_port);
+    self.print_read_results(serial_port);
   }
 
   fn write_str(&self, buffer_str: &str, serial_port: &mut Box<dyn SerialPort>) {
@@ -95,5 +123,33 @@ impl<'a> WriteSerial<'a> {
       buffer_str.push(deref_byte as char);
     }
     println!("Rx: '{}'", buffer_str);
+  }
+
+  fn get_custom_commands(&self, custom_command_file_name: &str) -> HashMap<String, Vec<String>> {
+    let mut hashmap = HashMap::<String, Vec<String>>::new();
+    if custom_command_file_name.is_empty() {
+      hashmap
+    } else {
+      let path: PathBuf = PathBuf::from(custom_command_file_name);
+      let mut file = File::open(&path).expect(&format!("Cannot open: '{}'", path.display()));
+      let mut file_data = String::new();
+      file.read_to_string(&mut file_data).unwrap();
+
+      let config_toml: ConfigToml =
+        toml::from_str(&file_data).expect("Cannot get values from TOML file");
+
+      let commands_vec = config_toml.command.command_array;
+      for vec_str in commands_vec {
+        let mut iter = vec_str.iter();
+        let shortcut_command = iter
+          .next()
+          .expect("Commands has no shortcut command")
+          .to_uppercase();
+        let commands: Vec<String> = iter.map(|str1| String::from(str1)).collect();
+        hashmap.insert(String::from(shortcut_command), commands);
+      }
+
+      hashmap
+    }
   }
 }

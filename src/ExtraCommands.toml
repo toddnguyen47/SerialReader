@@ -1,0 +1,8 @@
+[command]
+# Command array: First entry is the command, every other entry is what commands to run when the first entry
+#   is inputted.
+# Command array: [Command_name, Command To Run 1, Commands to Run 2, etc.]
+command_array = [
+  [],
+  [],
+]

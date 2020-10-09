@@ -35,6 +35,9 @@ enum Cli {
     /// Config file path.
     #[structopt(short = "-c", long = "--config")]
     config: Option<String>,
+    /// Custom command file path
+    #[structopt(long = "--commands")]
+    commands: Option<String>,
   },
 }
 
@@ -62,10 +65,12 @@ fn main() {
       }
     }
 
-    Cli::Write { config } => {
+    Cli::Write { config, commands } => {
       let config_file_path: String = config.unwrap_or(String::from(""));
       let write_serial = Factory::create_write_serial(&config_file_path);
-      write_serial.execute();
+
+      let commands_file_path = commands.unwrap_or(String::from(""));
+      write_serial.execute(&commands_file_path);
     }
   }
 }
