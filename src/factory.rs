@@ -1,5 +1,5 @@
-use crate::read_serial::ReadSerial;
-use crate::write_serial::WriteSerial;
+use crate::input_output::read_serial::ReadSerial;
+use crate::input_output::write_serial::WriteSerial;
 
 pub struct Factory {}
 

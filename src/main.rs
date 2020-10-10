@@ -1,7 +1,6 @@
+mod input_output;
 mod parse_config;
-mod read_serial;
-mod serial_port_open;
-mod write_serial;
+mod serial_port;
 
 mod factory;
 use factory::Factory;

@@ -1,4 +1,5 @@
-use crate::{read_serial::IReadSerial, serial_port_open::SerialPortOpen};
+use crate::input_output::read_serial::IReadSerial;
+use crate::serial_port::serial_port_open::SerialPortOpen;
 
 use serde::Deserialize;
 use serialport::SerialPort;

@@ -1,4 +1,4 @@
-use crate::serial_port_open::SerialPortOpen;
+use crate::serial_port::serial_port_open::SerialPortOpen;
 use chrono::{DateTime, Local};
 use serialport::SerialPort;
 
