@@ -6,7 +6,7 @@ use serialport::SerialPort;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
@@ -27,15 +27,20 @@ pub struct WriteSerial<'a> {
   read_serial: Box<dyn IReadSerial + 'a>,
   history_path: &'a str,
   max_history_len: usize,
+  show_all_commands_: HashSet<String>,
 }
 
 impl<'a> WriteSerial<'a> {
   pub fn new(config_file_name: &'a str, read_serial: Box<dyn IReadSerial + 'a>) -> Self {
+    let mut show_all_commands_ = HashSet::<String>::new();
+    show_all_commands_.insert("SHOW ALL COMMANDS".to_uppercase());
+    show_all_commands_.insert("HELP".to_uppercase());
     Self {
       config_file_name,
       read_serial,
       history_path: "history.txt",
       max_history_len: (1 << 7) + ((1 << 7) - 1),
+      show_all_commands_,
     }
   }
 
@@ -63,6 +68,7 @@ impl<'a> WriteSerial<'a> {
     loop {
       if count == 0 {
         println!("\n--- Press Ctrl + C to end the session ---");
+        println!("--- Type in `SHOW ALL COMMANDS` for all custom commands ---");
       }
       count = (count + 1) % 5;
 
@@ -72,12 +78,23 @@ impl<'a> WriteSerial<'a> {
       };
 
       let buffer_upper = buffer_str.to_uppercase();
-      if custom_commands.contains_key(&buffer_upper) {
+      if self.show_all_commands_.contains(&buffer_upper) {
+        for key in custom_commands.keys() {
+          println!("Command: '{}'", key);
+          let empty_vec = Vec::<String>::new();
+          let iterator = custom_commands.get(key).unwrap_or(&empty_vec).iter();
+          for (index, command) in iterator.enumerate() {
+            println!("  {}. '{}'", index + 1, command);
+          }
+        }
+      } else if custom_commands.contains_key(&buffer_upper) {
         let empty_vec = Vec::<String>::new();
         let vec_command = custom_commands.get(&buffer_upper).unwrap_or(&empty_vec);
         for command in vec_command {
           self.write_and_read(&command, &mut serial_port);
-          thread::sleep(Duration::from_millis(500));
+          let last_elem = command.split(" ").last().unwrap();
+          let time_sleep_millis = last_elem.parse::<u64>().unwrap_or(500);
+          thread::sleep(Duration::from_millis(time_sleep_millis));
         }
       } else {
         self.write_and_read(&buffer_str, &mut serial_port);
@@ -128,10 +145,7 @@ impl<'a> WriteSerial<'a> {
     }
     buffer_u8.push('\n' as u8);
 
-    let _ = match serial_port.write(&buffer_u8) {
-      Ok(bytes) => bytes,
-      Err(_) => 0,
-    };
+    let _write_result = serial_port.write(&buffer_u8);
     serial_port.flush().expect("Flush after write() failed");
     thread::sleep(Duration::from_millis(200));
   }
