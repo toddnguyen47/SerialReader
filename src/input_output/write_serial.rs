@@ -94,7 +94,10 @@ impl<'a> WriteSerial<'a> {
         for command in vec_command {
           self.write_and_read(&command, &mut serial_port);
           let last_elem = command.split(" ").last().unwrap();
-          let time_sleep_millis = last_elem.parse::<u64>().unwrap_or(500);
+          let time_sleep_millis = match last_elem.parse::<u64>() {
+            Ok(time) => time >> 1,
+            Err(_) => 500,
+          };
           thread::sleep(Duration::from_millis(time_sleep_millis));
         }
       } else {
