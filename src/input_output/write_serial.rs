@@ -80,26 +80,9 @@ impl<'a> WriteSerial<'a> {
 
       let buffer_upper = buffer_str.to_uppercase();
       if self.show_all_commands_.contains(&buffer_upper) {
-        for key in custom_commands.keys() {
-          println!("Command: '{}'", key);
-          let empty_vec = Vec::<String>::new();
-          let iterator = custom_commands.get(key).unwrap_or(&empty_vec).iter();
-          for (index, command) in iterator.enumerate() {
-            println!("  {}. '{}'", index + 1, command);
-          }
-        }
+        self.handle_show_all_command(&custom_commands);
       } else if custom_commands.contains_key(&buffer_upper) {
-        let empty_vec = Vec::<String>::new();
-        let vec_command = custom_commands.get(&buffer_upper).unwrap_or(&empty_vec);
-        for command in vec_command {
-          self.write_and_read(&command, &mut serial_port);
-          let last_elem = command.split(" ").last().unwrap();
-          let time_sleep_millis = match last_elem.parse::<u64>() {
-            Ok(time) => time >> 1,
-            Err(_) => 500,
-          };
-          thread::sleep(Duration::from_millis(time_sleep_millis));
-        }
+        self.handle_custom_commands(&custom_commands, &buffer_upper, &mut serial_port);
       } else {
         self.write_and_read(&buffer_str, &mut serial_port);
       }
@@ -207,6 +190,36 @@ impl<'a> WriteSerial<'a> {
         hashmap
       }
       None => hashmap,
+    }
+  }
+
+  fn handle_show_all_command(&self, custom_commands: &HashMap<String, Vec<String>>) {
+    for key in custom_commands.keys() {
+      println!("Command: '{}'", key);
+      let empty_vec = Vec::<String>::new();
+      let iterator = custom_commands.get(key).unwrap_or(&empty_vec).iter();
+      for (index, command) in iterator.enumerate() {
+        println!("  {}. '{}'", index + 1, command);
+      }
+    }
+  }
+
+  fn handle_custom_commands(
+    &self,
+    custom_commands: &HashMap<String, Vec<String>>,
+    buffer_upper: &str,
+    serial_port: &mut Box<dyn SerialPort>,
+  ) {
+    let empty_vec = Vec::<String>::new();
+    let vec_command = custom_commands.get(buffer_upper).unwrap_or(&empty_vec);
+    for command in vec_command {
+      self.write_and_read(&command, serial_port);
+      let last_elem = command.split(" ").last().unwrap();
+      let time_sleep_millis = match last_elem.parse::<u64>() {
+        Ok(time) => time >> 1,
+        Err(_) => 500,
+      };
+      thread::sleep(Duration::from_millis(time_sleep_millis));
     }
   }
 }
