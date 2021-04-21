@@ -1,7 +1,10 @@
 [command]
-# Command array: First entry is the command, every other entry is what commands to run when the first entry
-#   is inputted.
 # Command array: [Command_name, Command To Run 1, Commands to Run 2, etc.]
+# Command array: The first element is the command to type into the terminal
+#   every other entry is what commands to run when the first entry is inputted.
+# Example:
+# ["PD", "PUSH", "DOWN"]
+# With the array above, if you type in `PD` on the terminal, the terminal will actually send "PUSH DOWN"
 command_array = [
   [],
   [],
