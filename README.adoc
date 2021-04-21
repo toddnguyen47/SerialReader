@@ -27,7 +27,7 @@ Type in:
 
 [source, bash]
 ----
-./serial-port-reader --help
+./serial_port_reader_writer --help
 ----
 
 == SerialConfig.toml
@@ -40,11 +40,11 @@ from the `serialport` https://docs.rs/serialport/3.3.0/serialport[repository]
 * This program will use a file called `SerialConfig.toml` in the same directory as the executable by default. Ensure you have a `SerialConfig.toml` file. A sample `SerialConfig.toml` file is in the `src` folder.
 * Build the release version.
 * Make sure `SerialConfig.toml` is in the same directory as your executable.
-* Run your executable with `./serial-port-reader read`.
+* Run your executable with `./serial_port_reader_writer read`.
 
 == How to Write
 
-* Same as <<How to Read>>, except use the command `./serial-port-reader write`
+* Same as <<How to Read>>, except use the command `./serial_port_reader_writer write`
 
 == How to Use - Advanced
 
@@ -53,6 +53,6 @@ from the `serialport` https://docs.rs/serialport/3.3.0/serialport[repository]
 
 [source, bash]
 ----
-./serial-port-reader read --config <your_toml_file_path>
-./serial-port-reader write --config <your_toml_file_path> --commands <your_extra_commands_file_here>
+./serial_port_reader_writer read --config <your_toml_file_path>
+./serial_port_reader_writer write --config <your_toml_file_path> --commands <your_extra_commands_file_here>
 ----
