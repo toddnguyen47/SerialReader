@@ -1,0 +1,16 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "rust: cargo test current file",
+      "type": "cargo",
+      "command": "test",
+      "args": ["--", "${fileBasenameNoExtension}"],
+      "problemMatcher": ["$rustc"],
+      "group": "test",
+      "options": {
+        "cwd": "${relativeFileDirname}"
+      }
+    }
+  ]
+}
