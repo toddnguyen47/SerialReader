@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: rust/dependency-inversion/sorting-algos
+        working-directory: ./
     steps:
       - name: checkout
         uses: actions/checkout@v2
