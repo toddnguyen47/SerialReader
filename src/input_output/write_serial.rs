@@ -166,31 +166,28 @@ impl<'a> WriteSerial<'a> {
     custom_command_file_name: Option<String>,
   ) -> HashMap<String, Vec<String>> {
     let mut hashmap = HashMap::<String, Vec<String>>::new();
-    match custom_command_file_name {
-      Some(file_name) => {
-        let path: PathBuf = PathBuf::from(file_name);
-        let mut file = File::open(&path).expect(&format!("Cannot open: '{}'", path.display()));
-        let mut file_data = String::new();
-        file.read_to_string(&mut file_data).unwrap();
 
-        let config_toml: ConfigToml =
-          toml::from_str(&file_data).expect("Cannot get values from TOML file");
+    if let Some(file_name) = custom_command_file_name {
+      let path: PathBuf = PathBuf::from(file_name);
+      let mut file = File::open(&path).expect(&format!("Cannot open: '{}'", path.display()));
+      let mut file_data = String::new();
+      file.read_to_string(&mut file_data).unwrap();
 
-        let commands_vec = config_toml.command.command_array;
-        for vec_str in commands_vec {
-          let mut iter = vec_str.iter();
-          let shortcut_command = iter
-            .next()
-            .expect("Commands has no shortcut command")
-            .to_uppercase();
+      let config_toml: ConfigToml =
+        toml::from_str(&file_data).expect("Cannot get values from TOML file");
+
+      let commands_vec = config_toml.command.command_array;
+      for vec_str in commands_vec {
+        let mut iter = vec_str.iter();
+        if let Some(shortcut_command) = iter.next() {
+          let shortcut_command = shortcut_command.to_uppercase();
           let commands: Vec<String> = iter.map(|str1| String::from(str1)).collect();
           hashmap.insert(String::from(shortcut_command), commands);
         }
-
-        hashmap
       }
-      None => hashmap,
     }
+
+    hashmap
   }
 
   fn handle_show_all_command(&self, custom_commands: &HashMap<String, Vec<String>>) {
