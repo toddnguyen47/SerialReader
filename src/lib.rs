@@ -1,8 +1,9 @@
-mod input_output;
-mod parse_config;
-mod serial_port;
+pub mod input_output;
+pub mod parse_config;
+pub mod serial_port;
 
-mod factory;
+pub mod factory;
+
 use factory::Factory;
 
 use std::thread;
