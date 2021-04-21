@@ -1,8 +1,8 @@
 [serial]
-serial_port = "/dev/ttyUSB0"
 baud_rate = 9600
 data_bits = 7
 flow_control = "None"
 parity = "Odd"
+serial_port = "/dev/ttyUSB0"
 stop_bits = 2
 timeout_in_milliseconds = 1000

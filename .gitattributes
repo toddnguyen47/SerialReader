@@ -1,0 +1,13 @@
+* text=auto, eol=lf
+
+# Text files
+*.rs text
+*.json text
+*.toml text
+*.yaml text
+
+# Binary files
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.pdf binary

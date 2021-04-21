@@ -2,7 +2,7 @@
 authors = ["signet-mob <signet.mob@gmail.com>"]
 edition = "2018"
 name = "serial-port-reader"
-version = "0.2.0"
+version = "0.2.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
