@@ -16,8 +16,10 @@ impl SerialPortOpen {
     let toml_config_result: GetConfigResults = ParseConfig::get_config(config_file_name);
     let port = toml_config_result.serial_port;
     let settings = toml_config_result.serial_port_settings;
-    let serial_port = serialport::open_with_settings(&port, &settings)
-      .expect(&format!("Serial Port did not open!\n'{}'", port));
+    let serial_port = serialport::open_with_settings(&port, &settings).expect(&format!(
+      "\nSerial Port did not open!\nSerial Port: `{}`\n",
+      port
+    ));
     println!("Opening serial port: '{}'", port);
     SerialPortResults {
       serial_port,
