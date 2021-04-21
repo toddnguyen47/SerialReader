@@ -2,6 +2,7 @@ name: rust - cargo test
 
 on:
   push:
+    # On all branches for now
     branches: ["*"]
   pull_request:
     branches: ["*"]
