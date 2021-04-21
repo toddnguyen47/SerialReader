@@ -1,4 +1,6 @@
 = SerialReader
+Todd Nguyen <todd.nguyen47@gmail.com>
+:toc:
 
 Read a serial port and display its output
 
@@ -31,7 +33,7 @@ Type in:
 == SerialConfig.toml
 
 The `SerialConfig.toml` (or whatever name you named your config file) follows the settings
-from the `serialport` repository: https://docs.rs/serialport/3.3.0/serialport/
+from the `serialport` https://docs.rs/serialport/3.3.0/serialport[repository]
 
 == How to Read
 
@@ -42,7 +44,7 @@ from the `serialport` repository: https://docs.rs/serialport/3.3.0/serialport/
 
 == How to Write
 
-* Same as [How to Read](=how-to-read), except use the command `./serial-port-reader write`
+* Same as <<How to Read>>, except use the command `./serial-port-reader write`
 
 == How to Use - Advanced
 
