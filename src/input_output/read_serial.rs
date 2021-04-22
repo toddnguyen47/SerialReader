@@ -71,21 +71,19 @@ impl<'a> ReadSerial<'a> {
         let mut start_time_ms = Local::now().timestamp_millis();
 
         loop {
-            let mut string_result: String = match self.read_serial_line(&mut serial_port) {
-                Err(err) => match err {
-                    ReadError::Timeout => "Response timed out".to_string(),
-                    ReadError::NoResponse => "No response".to_string(),
-                },
-                Ok(str1) => str1,
-            };
-            let now: DateTime<Local> = Local::now();
-            let timestamp = now.format("%Y-%m-%d %H:%M:%S");
-            let now_ms = now.timestamp_millis();
-            let delta_ms = now_ms - start_time_ms;
-            start_time_ms = now_ms;
+            match self.read_serial_line(&mut serial_port) {
+                Err(_error) => {}
+                Ok(line_read) => {
+                    let now: DateTime<Local> = Local::now();
+                    let timestamp = now.format("%Y-%m-%d %H:%M:%S");
+                    let now_ms = now.timestamp_millis();
+                    let delta_ms = now_ms - start_time_ms;
+                    start_time_ms = now_ms;
 
-            string_result = string_result.replace("\n", "\\n").replace("\r", "\\r");
-            println!("[{} {:04}ms] Rx: '{}'", timestamp, delta_ms, string_result);
+                    let line_read = line_read.replace("\n", "\\n").replace("\r", "\\r");
+                    println!("[{} {:04}ms] Rx: '{}'", timestamp, delta_ms, line_read);
+                }
+            }
         }
     }
 }
