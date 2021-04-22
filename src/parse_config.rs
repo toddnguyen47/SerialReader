@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use serialport::{DataBits, FlowControl, Parity, SerialPortSettings, StopBits};
+use serialport::{DataBits, FlowControl, Parity, StopBits};
 use std::env;
 use std::fs::File;
 use std::io::Read;
@@ -11,12 +11,10 @@ struct ConfigToml {
     serial: Serial,
 }
 
-/**
- * The name of the struct has to match the name of the section,
- * e.g. [serial] will have to have a struct named Serial.
- *
- * The name of the fields will also have to match the name of the keys in the toml file!
- */
+/// The name of the struct has to match the name of the section,
+/// e.g. [serial] will have to have a struct named Serial.
+///
+/// The name of the fields will also have to match the name of the keys in the toml file!
 #[derive(Deserialize)]
 struct Serial {
     serial_port: String,
@@ -28,19 +26,20 @@ struct Serial {
     timeout_in_milliseconds: u64,
 }
 
-/// This struct is what will actually be passed onto another module that can
-/// then use the serial port settings.
-pub struct GetConfigResults {
-    /// The address of the serial port
+pub struct ParsedTomlValues {
     pub serial_port: String,
-    /// Serial port's settings, such as `baud rate` or `parity`.
-    pub serial_port_settings: SerialPortSettings,
+    pub baud_rate: u32,
+    pub data_bits: DataBits,
+    pub flow_control: FlowControl,
+    pub parity: Parity,
+    pub stop_bits: StopBits,
+    pub timeout_in_milliseconds: Duration,
 }
 
 pub struct ParseConfig {}
 
 impl ParseConfig {
-    pub fn get_config(config_file_name: &str) -> GetConfigResults {
+    pub fn get_config(config_file_name: &str) -> ParsedTomlValues {
         let mut path: PathBuf = PathBuf::from(config_file_name);
         if config_file_name == "" {
             path = env::current_exe().unwrap();
@@ -55,22 +54,23 @@ impl ParseConfig {
         let config_toml: ConfigToml =
             toml::from_str(&file_data).expect("Cannot get values from TOML file");
         let toml_val = config_toml.serial;
+
+        let serial_port = &toml_val.serial_port;
         let baud_rate = toml_val.baud_rate;
         let data_bits = ParseConfig::get_data_bits(&toml_val);
         let flow_control = ParseConfig::get_flow_control(&toml_val);
         let parity = ParseConfig::get_parity(&toml_val);
         let stop_bits = ParseConfig::get_stop_bits(&toml_val);
-        let timeout_duration = Duration::from_millis(toml_val.timeout_in_milliseconds);
-        GetConfigResults {
-            serial_port: toml_val.serial_port,
-            serial_port_settings: SerialPortSettings {
-                baud_rate,
-                data_bits,
-                flow_control,
-                parity,
-                stop_bits,
-                timeout: timeout_duration,
-            },
+        let timeout_in_milliseconds = Duration::from_millis(toml_val.timeout_in_milliseconds);
+
+        ParsedTomlValues {
+            serial_port: serial_port.to_string(),
+            baud_rate,
+            data_bits,
+            flow_control,
+            parity,
+            stop_bits,
+            timeout_in_milliseconds,
         }
     }
 

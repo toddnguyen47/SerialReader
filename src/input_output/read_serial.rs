@@ -133,10 +133,6 @@ mod tests {
                 todo!()
             }
 
-            fn settings(&self) -> serialport::SerialPortSettings {
-                todo!()
-            }
-
             fn baud_rate(&self) -> serialport::Result<u32> {
                 todo!()
             }
@@ -158,13 +154,6 @@ mod tests {
             }
 
             fn timeout(&self) -> std::time::Duration {
-                todo!()
-            }
-
-            fn set_all(
-                &mut self,
-                settings: &serialport::SerialPortSettings,
-            ) -> serialport::Result<()> {
                 todo!()
             }
 
@@ -232,6 +221,14 @@ mod tests {
             }
 
             fn try_clone(&self) -> serialport::Result<Box<dyn SerialPort>> {
+                todo!()
+            }
+
+            fn set_break(&self) -> serialport::Result<()> {
+                todo!()
+            }
+
+            fn clear_break(&self) -> serialport::Result<()> {
                 todo!()
             }
         }
