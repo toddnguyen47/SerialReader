@@ -1,7 +1,7 @@
 FROM rust:1.51-alpine3.13 as prerequisite
 #RUN apt-get update && \
 #  apt-get install -y libudev-dev pkg-config
-RUN apk add --update \
+RUN apk add --no-cache --update \
   alpine-sdk
 
 # Cache build dependencies
