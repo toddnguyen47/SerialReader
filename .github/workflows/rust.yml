@@ -12,7 +12,7 @@ env:
 
 jobs:
   test:
-    name: `cargo test` in Docker
+    name: cargo test in Docker
     runs-on: ubuntu-latest
     defaults:
       run:
