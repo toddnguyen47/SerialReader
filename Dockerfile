@@ -9,6 +9,6 @@ WORKDIR /home/serial-port-reader-writer
 COPY . .
 RUN cargo build
 
-FROM builder as test_runner
+FROM builder as test-runner
 WORKDIR /home/serial-port-reader-writer
 CMD ["cargo", "test"]
