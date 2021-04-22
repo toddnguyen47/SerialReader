@@ -40,12 +40,12 @@ impl<'a> IReadSerial for ReadSerial<'a> {
                 }
             }
 
-            if start_time.elapsed().as_secs() < READ_TIMEOUT_SECONDS {
+            if start_time.elapsed().as_secs() >= READ_TIMEOUT_SECONDS {
                 timed_out = true;
                 break;
             }
 
-            if false == is_carriage_return_char {
+            if is_carriage_return_char {
                 break;
             }
         }
@@ -83,6 +83,7 @@ impl<'a> ReadSerial<'a> {
             let now_ms = now.timestamp_millis();
             let delta_ms = now_ms - start_time_ms;
             start_time_ms = now_ms;
+
             string_result = string_result.replace("\n", "\\n").replace("\r", "\\r");
             println!("[{} {:04}ms] Rx: '{}'", timestamp, delta_ms, string_result);
         }
