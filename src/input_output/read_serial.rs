@@ -71,10 +71,9 @@ impl<'a> ReadSerial<'a> {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
-    use rstest::*;
     use tests::spy::SerialPortSpy;
 
-    #[rstest]
+    #[test]
     fn should_timeout_when_no_response() {
         let read_serial = ReadSerial::new("foobar");
         let mut serial_port_spy: Box<dyn SerialPort> = Box::new(SerialPortSpy::new());
