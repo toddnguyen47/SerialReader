@@ -2,4 +2,4 @@
 
 set -euxo pipefail
 
-docker run -it "serial-port-reader-writer:latest"
+docker run -it --rm "serial-port-reader-writer:latest"
