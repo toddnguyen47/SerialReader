@@ -1,4 +1,4 @@
-use crate::input_output::read_serial::IReadSerial;
+use crate::input_output::read_serial::{IReadSerial, ReadError};
 use crate::serial_port::serial_port_open::SerialPortOpen;
 
 use serde::Deserialize;
@@ -140,7 +140,14 @@ impl<'a> WriteSerial<'a> {
     fn print_read_results(&self, serial_port: &mut Box<dyn SerialPort>) {
         let lines_read = self.read_serial.read_serial_line(serial_port);
         match lines_read {
-            Some(line) => {
+            Err(error) => {
+                let msg = match error {
+                    ReadError::Timeout => "Response timed out!",
+                    ReadError::NoResponse => "No response!",
+                };
+                println!("{}", msg);
+            }
+            Ok(line) => {
                 let replaced_line = line.replace("\r", "\\r");
                 for cur_line in replaced_line.split("\n") {
                     if !cur_line.is_empty() {
@@ -148,7 +155,6 @@ impl<'a> WriteSerial<'a> {
                     }
                 }
             }
-            None => {}
         }
     }
 
