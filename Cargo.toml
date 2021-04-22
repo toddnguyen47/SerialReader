@@ -2,14 +2,14 @@
 authors = ["Todd Nguyen <todd.nguyen47@gmail.com>"]
 edition = "2018"
 name = "serial-port-reader-writer"
-version = "0.2.2"
+version = "0.2.3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 chrono = "0.4"
 rustyline = "6.3"
-serialport = "3.3"
+serialport = "4.0"
 structopt = "0.3"
 toml = "0.5"
 

@@ -7,7 +7,13 @@ use serialport::SerialPort;
 const READ_TIMEOUT_SECONDS: u64 = 5;
 
 pub trait IReadSerial {
-    fn read_serial_line(&self, serial_port: &mut Box<dyn SerialPort>) -> Option<String>;
+    fn read_serial_line(&self, serial_port: &mut Box<dyn SerialPort>) -> Result<String, ReadError>;
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ReadError {
+    Timeout,
+    NoResponse,
 }
 
 pub struct ReadSerial<'a> {
@@ -15,15 +21,14 @@ pub struct ReadSerial<'a> {
 }
 
 impl<'a> IReadSerial for ReadSerial<'a> {
-    fn read_serial_line(&self, serial_port: &mut Box<dyn SerialPort>) -> Option<String> {
+    fn read_serial_line(&self, serial_port: &mut Box<dyn SerialPort>) -> Result<String, ReadError> {
         let mut result = String::new();
         let mut buffer: [u8; 256] = [0; 256];
         let mut is_carriage_return_char = false;
         let start_time = Instant::now();
+        let mut timed_out = false;
 
-        while false == is_carriage_return_char
-            && start_time.elapsed().as_secs() < READ_TIMEOUT_SECONDS
-        {
+        loop {
             let bytes_read = serial_port.read(&mut buffer).unwrap_or(0);
             if bytes_read > 0 {
                 for i in 0..bytes_read {
@@ -34,12 +39,23 @@ impl<'a> IReadSerial for ReadSerial<'a> {
                     result.push(buffer[i] as char);
                 }
             }
+
+            if start_time.elapsed().as_secs() < READ_TIMEOUT_SECONDS {
+                timed_out = true;
+                break;
+            }
+
+            if false == is_carriage_return_char {
+                break;
+            }
         }
 
-        if result.is_empty() {
-            None
+        if timed_out {
+            Err(ReadError::Timeout)
+        } else if result.is_empty() {
+            Err(ReadError::NoResponse)
         } else {
-            Some(result)
+            Ok(result)
         }
     }
 }
@@ -55,7 +71,13 @@ impl<'a> ReadSerial<'a> {
         let mut start_time_ms = Local::now().timestamp_millis();
 
         loop {
-            let mut string_result = self.read_serial_line(&mut serial_port).unwrap();
+            let mut string_result: String = match self.read_serial_line(&mut serial_port) {
+                Err(err) => match err {
+                    ReadError::Timeout => "Response timed out".to_string(),
+                    ReadError::NoResponse => "No response".to_string(),
+                },
+                Ok(str1) => str1,
+            };
             let now: DateTime<Local> = Local::now();
             let timestamp = now.format("%Y-%m-%d %H:%M:%S");
             let now_ms = now.timestamp_millis();
@@ -74,12 +96,12 @@ mod tests {
     use tests::spy::SerialPortSpy;
 
     #[test]
-    fn should_timeout_when_no_response() {
+    fn should_give_timeout_error_when_no_response() {
         let read_serial = ReadSerial::new("foobar");
         let mut serial_port_spy: Box<dyn SerialPort> = Box::new(SerialPortSpy::new());
 
         let result = read_serial.read_serial_line(&mut serial_port_spy);
-        assert_eq!(None, result);
+        assert_eq!(Err(ReadError::Timeout), result);
     }
 
     mod spy {
@@ -111,10 +133,6 @@ mod tests {
                 todo!()
             }
 
-            fn settings(&self) -> serialport::SerialPortSettings {
-                todo!()
-            }
-
             fn baud_rate(&self) -> serialport::Result<u32> {
                 todo!()
             }
@@ -136,13 +154,6 @@ mod tests {
             }
 
             fn timeout(&self) -> std::time::Duration {
-                todo!()
-            }
-
-            fn set_all(
-                &mut self,
-                settings: &serialport::SerialPortSettings,
-            ) -> serialport::Result<()> {
                 todo!()
             }
 
@@ -210,6 +221,14 @@ mod tests {
             }
 
             fn try_clone(&self) -> serialport::Result<Box<dyn SerialPort>> {
+                todo!()
+            }
+
+            fn set_break(&self) -> serialport::Result<()> {
+                todo!()
+            }
+
+            fn clear_break(&self) -> serialport::Result<()> {
                 todo!()
             }
         }
