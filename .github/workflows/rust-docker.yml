@@ -51,7 +51,7 @@ jobs:
 
       - name: Run test on docker image
         run: |
-          docker run -it --rm serial-port-reader-writer:latest
+          docker run --rm serial-port-reader-writer:latest
 
       # Temp fix
       # https://github.com/docker/build-push-action/issues/252
