@@ -71,18 +71,17 @@ impl<'a> ReadSerial<'a> {
         let mut start_time_ms = Local::now().timestamp_millis();
 
         loop {
-            match self.read_serial_line(&mut serial_port) {
-                Err(_error) => {}
-                Ok(line_read) => {
-                    let now: DateTime<Local> = Local::now();
-                    let timestamp = now.format("%Y-%m-%d %H:%M:%S");
-                    let now_ms = now.timestamp_millis();
-                    let delta_ms = now_ms - start_time_ms;
-                    start_time_ms = now_ms;
+            // On error, don't print anything.
+            // Only print when lines are actually read
+            if let Ok(line_read) = self.read_serial_line(&mut serial_port) {
+                let now: DateTime<Local> = Local::now();
+                let timestamp = now.format("%Y-%m-%d %H:%M:%S");
+                let now_ms = now.timestamp_millis();
+                let delta_ms = now_ms - start_time_ms;
+                start_time_ms = now_ms;
 
-                    let line_read = line_read.replace("\n", "\\n").replace("\r", "\\r");
-                    println!("[{} {:04}ms] Rx: '{}'", timestamp, delta_ms, line_read);
-                }
+                let line_read = line_read.replace("\n", "\\n").replace("\r", "\\r");
+                println!("[{} {:04}ms] Rx: '{}'", timestamp, delta_ms, line_read);
             }
         }
     }
