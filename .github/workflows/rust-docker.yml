@@ -42,7 +42,7 @@ jobs:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
           file: Dockerfile
-          push: true # This would be set to true in a real world deployment scenario.
+          push: false # This would be set to true in a real world deployment scenario.
           tags: toddnguyen47/rust-serial-port-reader-writer:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
