@@ -1,0 +1,15 @@
+= `bin` folder
+
+This folder shall have your built executable along with your configuration files. These files can be
+* your `ExtraCommands.toml` file
+* your `SerialConfig.toml` file
+
+You can then run the binary like so:
+
+[source, bash]
+----
+$ ./serial-port-reader-writer read --config SerialConfig.toml
+$ ./serial-port-reader-writer write --config SerialConfig.toml --commands ExtraCommands.toml
+----
+
+Every other file will be ignored.

@@ -12,4 +12,3 @@ Cargo.lock
 # Todd's custom files
 serial-port-reader
 SerialConfig.toml
-bin/
