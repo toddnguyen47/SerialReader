@@ -20,4 +20,6 @@ RUN cargo build
 
 FROM builder as test-runner
 WORKDIR /home/serial-port-reader-writer
-CMD ["cargo", "test"]
+RUN cargo test
+
+CMD ["/bin/sh"]
